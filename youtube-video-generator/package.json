@@ -5,6 +5,8 @@
   "scripts": {
     "start": "bun src/index.ts",
     "dev": "bun --watch src/index.ts",
+    "dashboard": "bun src/server.ts",
+    "dashboard:dev": "bun --watch src/server.ts",
     "step1": "bun src/index.ts",
     "step2": "bun src/generate-script.ts",
     "step3": "bun src/render.ts",

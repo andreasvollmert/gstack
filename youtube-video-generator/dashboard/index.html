@@ -1,0 +1,1033 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Video Generator Dashboard</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #0d1117;
+  --surface: #161b22;
+  --surface2: #21262d;
+  --border: #30363d;
+  --text: #c9d1d9;
+  --text-muted: #8b949e;
+  --accent: #58a6ff;
+  --accent-dim: #1f3a5f;
+  --success: #3fb950;
+  --success-dim: #1a3a22;
+  --warning: #d29922;
+  --warning-dim: #3a2d0d;
+  --error: #f85149;
+  --error-dim: #3a1414;
+  --purple: #a371f7;
+  --purple-dim: #2d1f4a;
+  --radius: 8px;
+  --radius-sm: 4px;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+/* ── Layout ────────────────────────────────────────── */
+.app { display: flex; flex-direction: column; min-height: 100vh; }
+
+header {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 0 24px;
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  height: 56px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  font-size: 15px;
+  color: var(--text);
+  text-decoration: none;
+}
+.logo-icon { font-size: 20px; }
+
+nav { display: flex; gap: 4px; margin-left: auto; }
+
+.nav-btn {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  padding: 6px 12px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  transition: color 0.15s, background 0.15s;
+}
+.nav-btn:hover { color: var(--text); background: var(--surface2); }
+.nav-btn.active { color: var(--accent); background: var(--accent-dim); }
+
+main { flex: 1; padding: 24px; max-width: 1100px; margin: 0 auto; width: 100%; }
+
+/* ── Cards ─────────────────────────────────────────── */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  margin-bottom: 16px;
+}
+.card-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 16px;
+}
+
+/* ── Form Controls ─────────────────────────────────── */
+.form-row { display: flex; gap: 12px; align-items: flex-end; flex-wrap: wrap; }
+.form-group { display: flex; flex-direction: column; gap: 6px; flex: 1; min-width: 200px; }
+.form-group label { font-size: 12px; color: var(--text-muted); font-weight: 500; }
+
+input[type="text"], input[type="url"], input[type="password"], textarea {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  padding: 8px 12px;
+  font-size: 13px;
+  width: 100%;
+  outline: none;
+  transition: border-color 0.15s;
+  font-family: inherit;
+}
+input:focus, textarea:focus { border-color: var(--accent); }
+input::placeholder, textarea::placeholder { color: var(--text-muted); }
+
+textarea {
+  resize: vertical;
+  min-height: 200px;
+  font-family: 'SF Mono', 'Cascadia Code', Consolas, monospace;
+  font-size: 12px;
+}
+
+.input-group {
+  display: flex;
+  gap: 0;
+  align-items: stretch;
+}
+.input-group input {
+  border-radius: var(--radius-sm) 0 0 var(--radius-sm);
+  border-right: none;
+  flex: 1;
+}
+.input-group .btn-icon {
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  border: 1px solid var(--border);
+  background: var(--surface2);
+  color: var(--text-muted);
+  padding: 0 10px;
+  cursor: pointer;
+  font-size: 13px;
+}
+.input-group .btn-icon:hover { color: var(--text); }
+
+/* ── Buttons ───────────────────────────────────────── */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: opacity 0.15s, background 0.15s;
+  white-space: nowrap;
+}
+.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn-primary { background: var(--accent); color: #000; border-color: var(--accent); }
+.btn-primary:hover:not(:disabled) { opacity: 0.85; }
+.btn-secondary {
+  background: var(--surface2);
+  color: var(--text);
+  border-color: var(--border);
+}
+.btn-secondary:hover:not(:disabled) { background: var(--border); }
+.btn-danger { background: var(--error-dim); color: var(--error); border-color: var(--error); }
+.btn-danger:hover:not(:disabled) { opacity: 0.8; }
+.btn-success { background: var(--success-dim); color: var(--success); border-color: var(--success); }
+.btn-sm { padding: 5px 10px; font-size: 12px; }
+
+/* ── Status Badge ──────────────────────────────────── */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 8px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+.badge-pending { background: var(--surface2); color: var(--text-muted); }
+.badge-running { background: var(--purple-dim); color: var(--purple); }
+.badge-done { background: var(--success-dim); color: var(--success); }
+.badge-error { background: var(--error-dim); color: var(--error); }
+
+/* ── Steps ─────────────────────────────────────────── */
+.steps { display: flex; gap: 8px; flex-wrap: wrap; }
+.step-pill {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+  border: 1px solid var(--border);
+  background: var(--surface2);
+  color: var(--text-muted);
+}
+.step-pill.done { background: var(--success-dim); color: var(--success); border-color: var(--success); }
+.step-pill.running { background: var(--purple-dim); color: var(--purple); border-color: var(--purple); }
+.step-pill.error { background: var(--error-dim); color: var(--error); border-color: var(--error); }
+.step-icon { font-size: 12px; }
+
+/* ── Job List ──────────────────────────────────────── */
+.job-list { display: flex; flex-direction: column; gap: 8px; }
+.job-item {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+.job-item:hover { border-color: var(--accent); background: var(--surface2); }
+.job-item.active { border-color: var(--accent); }
+
+.job-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+.job-title { font-weight: 500; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.job-product { color: var(--text-muted); font-size: 12px; }
+.job-meta { color: var(--text-muted); font-size: 11px; }
+
+.job-footer {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+  justify-content: space-between;
+}
+.job-actions { display: flex; gap: 6px; }
+
+/* ── Job Detail Panel ──────────────────────────────── */
+.job-detail {
+  background: var(--surface);
+  border: 1px solid var(--accent);
+  border-radius: var(--radius);
+  margin-bottom: 16px;
+  overflow: hidden;
+}
+.job-detail-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.job-detail-title { font-weight: 600; font-size: 15px; flex: 1; }
+
+.detail-tabs {
+  display: flex;
+  border-bottom: 1px solid var(--border);
+  padding: 0 16px;
+  gap: 0;
+}
+.detail-tab {
+  padding: 10px 14px;
+  font-size: 13px;
+  cursor: pointer;
+  color: var(--text-muted);
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  background: none;
+  border-top: none;
+  border-left: none;
+  border-right: none;
+  font-family: inherit;
+}
+.detail-tab:hover { color: var(--text); }
+.detail-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+.detail-body { padding: 16px 20px; }
+
+/* ── Log Viewer ────────────────────────────────────── */
+.log-viewer {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 12px;
+  height: 280px;
+  overflow-y: auto;
+  font-family: 'SF Mono', 'Cascadia Code', Consolas, monospace;
+  font-size: 12px;
+  line-height: 1.6;
+}
+.log-line { padding: 1px 0; }
+.log-line.stderr { color: var(--warning); }
+.log-time { color: var(--text-muted); margin-right: 8px; font-size: 10px; }
+
+/* ── Script Editor ─────────────────────────────────── */
+.editor-toolbar {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+  justify-content: flex-end;
+}
+
+/* ── Output Files ──────────────────────────────────── */
+.files-grid { display: flex; flex-direction: column; gap: 8px; }
+.file-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+.file-icon { font-size: 18px; }
+.file-info { flex: 1; }
+.file-name { font-weight: 500; font-size: 13px; }
+.file-type { color: var(--text-muted); font-size: 11px; }
+.file-actions { display: flex; gap: 6px; }
+
+video.preview {
+  width: 100%;
+  max-height: 400px;
+  border-radius: var(--radius-sm);
+  background: #000;
+  margin-top: 12px;
+}
+
+/* ── Settings ──────────────────────────────────────── */
+.settings-card { max-width: 600px; }
+.settings-desc { color: var(--text-muted); font-size: 12px; margin-top: 4px; }
+
+/* ── Empty State ───────────────────────────────────── */
+.empty {
+  text-align: center;
+  padding: 48px 24px;
+  color: var(--text-muted);
+}
+.empty-icon { font-size: 40px; margin-bottom: 12px; }
+.empty-title { font-size: 15px; font-weight: 500; margin-bottom: 6px; color: var(--text); }
+
+/* ── Alert ─────────────────────────────────────────── */
+.alert {
+  padding: 10px 14px;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  margin-bottom: 12px;
+  display: none;
+}
+.alert.show { display: block; }
+.alert-error { background: var(--error-dim); color: var(--error); border: 1px solid var(--error); }
+.alert-success { background: var(--success-dim); color: var(--success); border: 1px solid var(--success); }
+
+/* ── Spinner ───────────────────────────────────────── */
+@keyframes spin { to { transform: rotate(360deg); } }
+.spinner {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border: 2px solid var(--border);
+  border-top-color: var(--purple);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+/* ── Key status indicator ──────────────────────────── */
+.key-status { display: flex; align-items: center; gap: 6px; font-size: 11px; margin-top: 4px; }
+.key-dot { width: 7px; height: 7px; border-radius: 50%; }
+.key-dot.set { background: var(--success); }
+.key-dot.unset { background: var(--error); }
+
+/* ── Divider ───────────────────────────────────────── */
+.divider { height: 1px; background: var(--border); margin: 16px 0; }
+
+/* ── Responsive ────────────────────────────────────── */
+@media (max-width: 600px) {
+  main { padding: 12px; }
+  .form-row { flex-direction: column; }
+}
+</style>
+</head>
+<body>
+<div class="app" id="app">
+  <header>
+    <a class="logo" href="#" onclick="navigate('dashboard')">
+      <span class="logo-icon">🎬</span>
+      <span>Video Generator</span>
+    </a>
+    <nav>
+      <button class="nav-btn active" id="nav-dashboard" onclick="navigate('dashboard')">Dashboard</button>
+      <button class="nav-btn" id="nav-settings" onclick="navigate('settings')">Einstellungen</button>
+    </nav>
+  </header>
+  <main id="main"></main>
+</div>
+
+<script>
+// ── State ──────────────────────────────────────────────────────────────────
+const state = {
+  view: 'dashboard',
+  jobs: [],
+  selectedJobId: null,
+  selectedDetailTab: 'logs',
+  config: { openaiKeySet: false, anthropicKeySet: false },
+  eventSources: {},
+  scripts: {},        // jobId -> script JSON string
+  scriptEdited: {},   // jobId -> bool
+  notifications: [],
+  pollInterval: null,
+};
+
+// ── API ────────────────────────────────────────────────────────────────────
+const API = '/api';
+
+async function apiFetch(path, opts = {}) {
+  const res = await fetch(API + path, {
+    headers: { 'Content-Type': 'application/json' },
+    ...opts,
+  });
+  if (!res.ok) {
+    const e = await res.json().catch(() => ({ error: res.statusText }));
+    throw new Error(e.error || res.statusText);
+  }
+  return res.json();
+}
+
+async function loadConfig() {
+  state.config = await apiFetch('/config');
+}
+
+async function saveConfigApi(openaiApiKey, anthropicApiKey) {
+  await apiFetch('/config', { method: 'POST', body: JSON.stringify({ openaiApiKey, anthropicApiKey }) });
+  await loadConfig();
+}
+
+async function loadJobs() {
+  state.jobs = await apiFetch('/jobs');
+}
+
+async function createJob(url, product) {
+  const job = await apiFetch('/jobs', { method: 'POST', body: JSON.stringify({ url, product }) });
+  state.jobs.unshift(job);
+  state.selectedJobId = job.id;
+  state.selectedDetailTab = 'logs';
+  subscribeToJob(job.id);
+  return job;
+}
+
+async function deleteJobApi(id) {
+  await apiFetch(`/jobs/${id}`, { method: 'DELETE' });
+  state.jobs = state.jobs.filter(j => j.id !== id);
+  if (state.selectedJobId === id) state.selectedJobId = null;
+  delete state.eventSources[id];
+}
+
+async function loadScript(jobId) {
+  const res = await fetch(`/api/jobs/${jobId}/script`);
+  if (!res.ok) return null;
+  return res.text();
+}
+
+async function saveScript(jobId) {
+  const script = state.scripts[jobId];
+  if (!script) return;
+  await apiFetch(`/jobs/${jobId}/script`, { method: 'PUT', body: script });
+  state.scriptEdited[jobId] = false;
+  showNotification('Skript gespeichert', 'success');
+}
+
+async function reRender(jobId) {
+  await apiFetch(`/jobs/${jobId}/rerender`, { method: 'POST' });
+  state.selectedDetailTab = 'logs';
+  subscribeToJob(jobId);
+  render();
+}
+
+// ── SSE ────────────────────────────────────────────────────────────────────
+function subscribeToJob(jobId) {
+  if (state.eventSources[jobId]) {
+    state.eventSources[jobId].close();
+  }
+  const es = new EventSource(`/api/jobs/${jobId}/events`);
+  state.eventSources[jobId] = es;
+
+  es.addEventListener('log', (e) => {
+    const log = JSON.parse(e.data);
+    const job = state.jobs.find(j => j.id === jobId);
+    if (job) {
+      if (!job.logs) job.logs = [];
+      job.logs.push(log);
+      appendLogLine(jobId, log);
+    }
+  });
+
+  es.addEventListener('status', (e) => {
+    const update = JSON.parse(e.data);
+    const idx = state.jobs.findIndex(j => j.id === jobId);
+    if (idx >= 0) {
+      state.jobs[idx] = { ...state.jobs[idx], ...update };
+    }
+    updateJobUI(jobId);
+  });
+
+  es.addEventListener('done', (e) => {
+    es.close();
+    delete state.eventSources[jobId];
+    loadJobs().then(() => render());
+  });
+
+  es.onerror = () => {
+    es.close();
+    delete state.eventSources[jobId];
+  };
+}
+
+// ── Helpers ────────────────────────────────────────────────────────────────
+function timeAgo(ts) {
+  const diff = Date.now() - ts;
+  if (diff < 60000) return 'gerade eben';
+  if (diff < 3600000) return Math.floor(diff / 60000) + ' Min ago';
+  if (diff < 86400000) return Math.floor(diff / 3600000) + ' Std ago';
+  return new Date(ts).toLocaleDateString('de-DE');
+}
+
+function formatTime(ts) {
+  return new Date(ts).toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+}
+
+function stepIcon(status) {
+  if (status === 'done') return '✅';
+  if (status === 'running') return '⟳';
+  if (status === 'error') return '❌';
+  return '○';
+}
+
+function badgeHtml(status) {
+  const labels = { pending: 'Ausstehend', running: 'Läuft', done: 'Fertig', error: 'Fehler' };
+  return `<span class="badge badge-${status}">${labels[status] || status}</span>`;
+}
+
+function stepsHtml(steps) {
+  return steps.map(s =>
+    `<span class="step-pill ${s.status}"><span class="step-icon">${stepIcon(s.status)}</span>${s.step}</span>`
+  ).join('');
+}
+
+function filename(p) {
+  return p ? p.split('/').pop() : '';
+}
+
+function fileUrl(p) {
+  return '/output/' + encodeURIComponent(filename(p));
+}
+
+function showNotification(msg, type = 'success') {
+  const el = document.getElementById('notification');
+  if (!el) return;
+  el.textContent = msg;
+  el.className = `alert ${type === 'success' ? 'alert-success' : 'alert-error'} show`;
+  setTimeout(() => el.classList.remove('show'), 3000);
+}
+
+// ── Live UI updates (without full re-render) ───────────────────────────────
+function appendLogLine(jobId, log) {
+  if (state.selectedJobId !== jobId || state.selectedDetailTab !== 'logs') return;
+  const viewer = document.getElementById('log-viewer');
+  if (!viewer) return;
+  const line = document.createElement('div');
+  line.className = `log-line${log.stream === 'stderr' ? ' stderr' : ''}`;
+  line.innerHTML = `<span class="log-time">${formatTime(log.ts)}</span>${escHtml(log.text)}`;
+  viewer.appendChild(line);
+  viewer.scrollTop = viewer.scrollHeight;
+}
+
+function updateJobUI(jobId) {
+  const job = state.jobs.find(j => j.id === jobId);
+  if (!job) return;
+
+  // Update badge in job list
+  const badgeEl = document.getElementById(`badge-${jobId}`);
+  if (badgeEl) badgeEl.outerHTML = `${badgeHtml(job.status)}`;
+
+  // Update steps
+  const stepsEl = document.getElementById(`steps-${jobId}`);
+  if (stepsEl) stepsEl.innerHTML = stepsHtml(job.steps || []);
+
+  // Update detail header badge
+  const detailBadge = document.getElementById('detail-badge');
+  if (detailBadge && state.selectedJobId === jobId) {
+    detailBadge.outerHTML = `${badgeHtml(job.status)}`;
+  }
+
+  // Update spinner
+  const spinner = document.getElementById('detail-spinner');
+  if (spinner && state.selectedJobId === jobId) {
+    spinner.style.display = job.status === 'running' ? 'inline-block' : 'none';
+  }
+}
+
+function escHtml(s) {
+  return (s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+// ── Navigate ───────────────────────────────────────────────────────────────
+function navigate(view) {
+  state.view = view;
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById(`nav-${view}`)?.classList.add('active');
+  render();
+}
+
+function selectJob(id) {
+  if (state.selectedJobId === id) {
+    state.selectedJobId = null;
+  } else {
+    state.selectedJobId = id;
+    state.selectedDetailTab = 'logs';
+    // Subscribe if still running
+    const job = state.jobs.find(j => j.id === id);
+    if (job && (job.status === 'running' || job.status === 'pending')) {
+      subscribeToJob(id);
+    }
+  }
+  render();
+}
+
+function selectTab(tab) {
+  state.selectedDetailTab = tab;
+  const jobId = state.selectedJobId;
+  render();
+  // Load script if needed
+  if (tab === 'editor' && jobId && !state.scripts[jobId]) {
+    loadScript(jobId).then(s => {
+      if (s) {
+        state.scripts[jobId] = s;
+        const ta = document.getElementById('script-editor');
+        if (ta) ta.value = s;
+      }
+    });
+  }
+  if (tab === 'logs') {
+    setTimeout(() => {
+      const viewer = document.getElementById('log-viewer');
+      if (viewer) viewer.scrollTop = viewer.scrollHeight;
+    }, 50);
+  }
+}
+
+// ── Views ──────────────────────────────────────────────────────────────────
+function renderDashboard() {
+  const keysOk = state.config.openaiKeySet && state.config.anthropicKeySet;
+  return `
+    <div id="notification" class="alert"></div>
+
+    <!-- New Video Form -->
+    <div class="card">
+      <div class="card-title">Neues Video erstellen</div>
+      ${!keysOk ? `<div class="alert alert-error show" style="margin-bottom:12px">
+        ⚠️ Bitte zuerst die API-Keys in den <a href="#" onclick="navigate('settings')" style="color:inherit">Einstellungen</a> konfigurieren.
+      </div>` : ''}
+      <div class="form-row">
+        <div class="form-group" style="flex:2">
+          <label>YouTube URL</label>
+          <input type="url" id="new-url" placeholder="https://youtube.com/watch?v=..." ${!keysOk ? 'disabled' : ''}>
+        </div>
+        <div class="form-group">
+          <label>Produkt / Thema</label>
+          <input type="text" id="new-product" placeholder="z.B. Seedance 2" value="Seedance 2" ${!keysOk ? 'disabled' : ''}>
+        </div>
+        <button class="btn btn-primary" onclick="submitNewJob()" ${!keysOk ? 'disabled' : ''}>
+          ▶ Pipeline starten
+        </button>
+      </div>
+    </div>
+
+    <!-- Job Detail Panel (if selected) -->
+    ${state.selectedJobId ? renderJobDetail() : ''}
+
+    <!-- Job List -->
+    <div class="card">
+      <div class="card-title" style="display:flex;justify-content:space-between;align-items:center">
+        <span>Videos (${state.jobs.length})</span>
+        <button class="btn btn-secondary btn-sm" onclick="loadJobs().then(render)">↻ Aktualisieren</button>
+      </div>
+      ${state.jobs.length === 0 ? `
+        <div class="empty">
+          <div class="empty-icon">🎬</div>
+          <div class="empty-title">Noch keine Videos</div>
+          <div>Gib eine YouTube URL ein und starte die Pipeline.</div>
+        </div>
+      ` : `
+        <div class="job-list">
+          ${state.jobs.map(renderJobItem).join('')}
+        </div>
+      `}
+    </div>
+  `;
+}
+
+function renderJobItem(job) {
+  const isSelected = state.selectedJobId === job.id;
+  return `
+    <div class="job-item${isSelected ? ' active' : ''}" onclick="selectJob('${job.id}')">
+      <div class="job-header">
+        <span id="badge-${job.id}">${badgeHtml(job.status)}</span>
+        <span class="job-title">${escHtml(job.title || job.url)}</span>
+        <span class="job-product">${escHtml(job.product)}</span>
+        <span class="job-meta">${timeAgo(job.createdAt)}</span>
+      </div>
+      <div class="job-footer">
+        <div id="steps-${job.id}" class="steps">${stepsHtml(job.steps || [])}</div>
+        <div class="job-actions" onclick="event.stopPropagation()">
+          ${job.files?.video ? `
+            <a href="${fileUrl(job.files.video)}" download class="btn btn-secondary btn-sm">⬇ Video</a>
+          ` : ''}
+          <button class="btn btn-danger btn-sm" onclick="confirmDelete('${job.id}')">✕</button>
+        </div>
+      </div>
+      ${job.error ? `<div style="color:var(--error);font-size:12px;margin-top:6px">❌ ${escHtml(job.error)}</div>` : ''}
+    </div>
+  `;
+}
+
+function renderJobDetail() {
+  const job = state.jobs.find(j => j.id === state.selectedJobId);
+  if (!job) return '';
+
+  const tabs = [
+    { id: 'logs', label: '📋 Logs' },
+    { id: 'files', label: '📁 Dateien' },
+    { id: 'editor', label: '✏️ Skript bearbeiten' },
+  ];
+
+  return `
+    <div class="job-detail">
+      <div class="job-detail-header">
+        <span id="detail-spinner" class="spinner" style="display:${job.status === 'running' ? 'inline-block' : 'none'}"></span>
+        <span class="job-detail-title">${escHtml(job.title || job.url)}</span>
+        <span id="detail-badge">${badgeHtml(job.status)}</span>
+        <div class="steps">${stepsHtml(job.steps || [])}</div>
+        <button class="btn btn-secondary btn-sm" onclick="state.selectedJobId=null;render()">✕</button>
+      </div>
+      <div class="detail-tabs">
+        ${tabs.map(t => `
+          <button class="detail-tab${state.selectedDetailTab === t.id ? ' active' : ''}"
+            onclick="selectTab('${t.id}')">${t.label}</button>
+        `).join('')}
+      </div>
+      <div class="detail-body">
+        ${state.selectedDetailTab === 'logs' ? renderLogsTab(job) : ''}
+        ${state.selectedDetailTab === 'files' ? renderFilesTab(job) : ''}
+        ${state.selectedDetailTab === 'editor' ? renderEditorTab(job) : ''}
+      </div>
+    </div>
+  `;
+}
+
+function renderLogsTab(job) {
+  const logs = job.logs || [];
+  return `
+    <div class="log-viewer" id="log-viewer">
+      ${logs.map(l => `
+        <div class="log-line${l.stream === 'stderr' ? ' stderr' : ''}">
+          <span class="log-time">${formatTime(l.ts)}</span>${escHtml(l.text)}
+        </div>
+      `).join('')}
+    </div>
+    <script>
+      setTimeout(() => {
+        const v = document.getElementById('log-viewer');
+        if (v) v.scrollTop = v.scrollHeight;
+      }, 50);
+    <\/script>
+  `;
+}
+
+function renderFilesTab(job) {
+  const files = job.files || {};
+  const entries = [
+    { key: 'audio', icon: '🎵', label: 'Audio', type: 'MP3', path: files.audio },
+    { key: 'transcriptJson', icon: '📝', label: 'Transkript', type: 'JSON', path: files.transcriptJson },
+    { key: 'scriptJson', icon: '📄', label: 'Skript', type: 'JSON', path: files.scriptJson },
+    { key: 'scriptMd', icon: '📋', label: 'Skript Markdown', type: 'MD', path: files.scriptMd },
+    { key: 'video', icon: '🎬', label: 'Video', type: 'MP4', path: files.video },
+  ].filter(e => e.path);
+
+  if (entries.length === 0) {
+    return '<div class="empty" style="padding:24px"><div>Noch keine Dateien vorhanden.</div></div>';
+  }
+
+  const videoEntry = entries.find(e => e.key === 'video');
+
+  return `
+    <div class="files-grid">
+      ${entries.map(e => `
+        <div class="file-item">
+          <span class="file-icon">${e.icon}</span>
+          <div class="file-info">
+            <div class="file-name">${escHtml(filename(e.path))}</div>
+            <div class="file-type">${e.label} · ${e.type}</div>
+          </div>
+          <div class="file-actions">
+            <a href="${fileUrl(e.path)}" download class="btn btn-secondary btn-sm">⬇ Download</a>
+          </div>
+        </div>
+      `).join('')}
+    </div>
+    ${videoEntry ? `<video class="preview" controls src="${fileUrl(videoEntry.path)}"></video>` : ''}
+    ${job.files.scriptJson ? `
+      <div style="margin-top:12px">
+        <button class="btn btn-success" onclick="reRender('${job.id}')">🎬 Video neu rendern</button>
+      </div>
+    ` : ''}
+  `;
+}
+
+function renderEditorTab(job) {
+  if (!job.files?.scriptJson) {
+    return '<div class="empty" style="padding:24px"><div>Kein Skript vorhanden. Erst Schritt 2 abschließen.</div></div>';
+  }
+
+  const scriptContent = state.scripts[job.id] || '';
+  const edited = state.scriptEdited[job.id];
+
+  return `
+    <div style="margin-bottom:8px;font-size:12px;color:var(--text-muted)">
+      Bearbeite das Skript-JSON direkt. Danach speichern und neu rendern.
+    </div>
+    <textarea
+      id="script-editor"
+      placeholder="Skript wird geladen..."
+      oninput="onScriptEdit('${job.id}', this.value)"
+    >${escHtml(scriptContent)}</textarea>
+    <div class="editor-toolbar">
+      ${edited ? '<span style="color:var(--warning);font-size:12px">● Ungespeicherte Änderungen</span>' : ''}
+      <button class="btn btn-secondary" onclick="formatScript('${job.id}')">⚡ Formatieren</button>
+      <button class="btn btn-primary" onclick="saveScriptAndNotify('${job.id}')" ${!edited ? 'disabled' : ''}>
+        💾 Speichern
+      </button>
+      <button class="btn btn-success" onclick="saveAndRerender('${job.id}')" ${!job.files.scriptJson ? 'disabled' : ''}>
+        🎬 Speichern & Rendern
+      </button>
+    </div>
+  `;
+}
+
+function renderSettings() {
+  return `
+    <div id="notification" class="alert"></div>
+    <div class="card settings-card">
+      <div class="card-title">API-Keys</div>
+      <p style="color:var(--text-muted);font-size:13px;margin-bottom:20px">
+        Die Keys werden lokal in <code>dashboard-config.json</code> gespeichert und nie gesendet.
+      </p>
+
+      <div class="form-group" style="margin-bottom:16px">
+        <label>OpenAI API Key <span style="color:var(--text-muted)">(Whisper Transkription)</span></label>
+        <div class="input-group">
+          <input type="password" id="openai-key" placeholder="${state.config.openaiKeySet ? '••••••••' : 'sk-...'}"
+            value="">
+          <button class="btn-icon" onclick="togglePassword('openai-key')">👁</button>
+        </div>
+        <div class="key-status">
+          <div class="key-dot ${state.config.openaiKeySet ? 'set' : 'unset'}"></div>
+          <span>${state.config.openaiKeySet ? 'Key gesetzt' : 'Kein Key konfiguriert'}</span>
+        </div>
+      </div>
+
+      <div class="form-group" style="margin-bottom:20px">
+        <label>Anthropic API Key <span style="color:var(--text-muted)">(Claude Skript-Generierung)</span></label>
+        <div class="input-group">
+          <input type="password" id="anthropic-key" placeholder="${state.config.anthropicKeySet ? '••••••••' : 'sk-ant-...'}"
+            value="">
+          <button class="btn-icon" onclick="togglePassword('anthropic-key')">👁</button>
+        </div>
+        <div class="key-status">
+          <div class="key-dot ${state.config.anthropicKeySet ? 'set' : 'unset'}"></div>
+          <span>${state.config.anthropicKeySet ? 'Key gesetzt' : 'Kein Key konfiguriert'}</span>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+      <p style="color:var(--text-muted);font-size:12px;margin-bottom:12px">
+        Felder leer lassen um bestehende Keys zu behalten.
+      </p>
+      <button class="btn btn-primary" onclick="submitSettings()">💾 Speichern</button>
+    </div>
+  `;
+}
+
+// ── Event Handlers ─────────────────────────────────────────────────────────
+async function submitNewJob() {
+  const url = document.getElementById('new-url')?.value?.trim();
+  const product = document.getElementById('new-product')?.value?.trim() || 'Seedance 2';
+  if (!url) { showNotification('Bitte eine YouTube URL eingeben', 'error'); return; }
+
+  try {
+    const job = await createJob(url, product);
+    showNotification('Pipeline gestartet!', 'success');
+    render();
+    subscribeToJob(job.id);
+    setTimeout(() => {
+      const viewer = document.getElementById('log-viewer');
+      if (viewer) viewer.scrollTop = viewer.scrollHeight;
+    }, 100);
+  } catch (e) {
+    showNotification(e.message, 'error');
+  }
+}
+
+async function submitSettings() {
+  const openai = document.getElementById('openai-key')?.value?.trim();
+  const anthropic = document.getElementById('anthropic-key')?.value?.trim();
+  try {
+    await saveConfigApi(openai, anthropic);
+    showNotification('Einstellungen gespeichert', 'success');
+    render();
+  } catch (e) {
+    showNotification(e.message, 'error');
+  }
+}
+
+async function confirmDelete(id) {
+  if (!confirm('Job wirklich löschen?')) return;
+  try {
+    await deleteJobApi(id);
+    render();
+  } catch (e) {
+    showNotification(e.message, 'error');
+  }
+}
+
+function togglePassword(id) {
+  const el = document.getElementById(id);
+  if (el) el.type = el.type === 'password' ? 'text' : 'password';
+}
+
+function onScriptEdit(jobId, value) {
+  state.scripts[jobId] = value;
+  state.scriptEdited[jobId] = true;
+  // update toolbar without full re-render
+  const unsaved = document.querySelector('.editor-toolbar span');
+  if (!unsaved) {
+    const toolbar = document.querySelector('.editor-toolbar');
+    if (toolbar) {
+      const span = document.createElement('span');
+      span.style.cssText = 'color:var(--warning);font-size:12px';
+      span.textContent = '● Ungespeicherte Änderungen';
+      toolbar.insertBefore(span, toolbar.firstChild);
+    }
+  }
+  const saveBtn = document.querySelector('.editor-toolbar .btn-primary');
+  if (saveBtn) saveBtn.disabled = false;
+}
+
+function formatScript(jobId) {
+  const ta = document.getElementById('script-editor');
+  if (!ta) return;
+  try {
+    const formatted = JSON.stringify(JSON.parse(ta.value), null, 2);
+    ta.value = formatted;
+    state.scripts[jobId] = formatted;
+    state.scriptEdited[jobId] = true;
+  } catch {
+    showNotification('Ungültiges JSON', 'error');
+  }
+}
+
+async function saveScriptAndNotify(jobId) {
+  try {
+    await saveScript(jobId);
+    render();
+  } catch (e) {
+    showNotification(e.message, 'error');
+  }
+}
+
+async function saveAndRerender(jobId) {
+  try {
+    await saveScript(jobId);
+    await reRender(jobId);
+    render();
+  } catch (e) {
+    showNotification(e.message, 'error');
+  }
+}
+
+// ── Render ─────────────────────────────────────────────────────────────────
+function render() {
+  const main = document.getElementById('main');
+  if (!main) return;
+
+  if (state.view === 'settings') {
+    main.innerHTML = renderSettings();
+  } else {
+    main.innerHTML = renderDashboard();
+  }
+}
+
+// ── Init ───────────────────────────────────────────────────────────────────
+async function init() {
+  await loadConfig();
+  await loadJobs();
+  render();
+
+  // Subscribe to running jobs
+  for (const job of state.jobs) {
+    if (job.status === 'running' || job.status === 'pending') {
+      subscribeToJob(job.id);
+    }
+  }
+
+  // Poll jobs every 10s as fallback
+  setInterval(async () => {
+    const hasRunning = state.jobs.some(j => j.status === 'running' || j.status === 'pending');
+    if (!hasRunning) {
+      await loadJobs();
+      render();
+    }
+  }, 10000);
+}
+
+init();
+</script>
+</body>
+</html>
