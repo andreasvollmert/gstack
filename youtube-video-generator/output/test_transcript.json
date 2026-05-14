@@ -1,0 +1,18 @@
+{
+  "url": "https://www.youtube.com/watch?v=test123",
+  "title": "How to Build a SaaS Product in 2024 - Complete Guide",
+  "duration": 900,
+  "description": "In this video we cover everything you need to know to build and launch a SaaS product.",
+  "language": "en",
+  "text": "Welcome to this complete guide on building a SaaS product in 2024. Today I'm going to walk you through everything you need to know, from finding your idea, to launching your product and getting your first customers.\n\nFirst, let's talk about finding a profitable idea. The best SaaS products solve a specific, painful problem that people are willing to pay for. You want to find a niche where there's enough demand but not too much competition.\n\nNext, you need to validate your idea before building. Talk to potential customers, run a survey, create a landing page and see if people sign up. Don't spend months building something nobody wants.\n\nWhen it comes to building your MVP, focus on the core features only. Use modern frameworks like Next.js or Remix for the frontend, and choose a backend that lets you move fast. Don't over-engineer it.\n\nFor monetization, start simple. Offer a free trial, then charge monthly or annually. Use Stripe for payments - it takes maybe an hour to set up and handles everything.\n\nFinally, distribution is everything. Start with content marketing, build in public, reach out to your target audience directly. Your first 100 customers will probably come from your network.\n\nRemember: launch fast, iterate based on feedback, and don't give up. Most successful SaaS products took years to find product-market fit. The key is persistence and constant improvement.",
+  "segments": [
+    {"start": 0, "end": 15, "text": "Welcome to this complete guide on building a SaaS product in 2024."},
+    {"start": 15, "end": 45, "text": "Today I'm going to walk you through everything you need to know."},
+    {"start": 45, "end": 120, "text": "First, let's talk about finding a profitable idea."},
+    {"start": 120, "end": 200, "text": "Next, you need to validate your idea before building."},
+    {"start": 200, "end": 350, "text": "When it comes to building your MVP, focus on the core features only."},
+    {"start": 350, "end": 500, "text": "For monetization, start simple. Use Stripe for payments."},
+    {"start": 500, "end": 700, "text": "Finally, distribution is everything. Start with content marketing."},
+    {"start": 700, "end": 900, "text": "Remember: launch fast, iterate based on feedback, and don't give up."}
+  ]
+}
