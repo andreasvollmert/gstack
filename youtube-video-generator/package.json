@@ -4,13 +4,25 @@
   "type": "module",
   "scripts": {
     "start": "bun src/index.ts",
-    "dev": "bun --watch src/index.ts"
+    "dev": "bun --watch src/index.ts",
+    "step1": "bun src/index.ts",
+    "step2": "bun src/generate-script.ts",
+    "step3": "bun src/render.ts",
+    "preview": "bun src/render.ts --preview",
+    "studio": "npx remotion studio remotion/src/Root.tsx"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.96.0",
-    "openai": "^4.77.0"
+    "@remotion/cli": "^4.0.461",
+    "@remotion/player": "^4.0.461",
+    "openai": "^4.77.0",
+    "react": "^19.2.6",
+    "react-dom": "^19.2.6",
+    "remotion": "^4.0.461"
   },
   "devDependencies": {
-    "@types/node": "^22.0.0"
+    "@types/node": "^22.0.0",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3"
   }
 }

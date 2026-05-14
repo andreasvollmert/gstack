@@ -7,66 +7,144 @@ Pipeline: YouTube-Video → Transkript → KI-Skript → neues Video (Remotion /
 | Schritt | Beschreibung | Status |
 |---------|-------------|--------|
 | **1** | YouTube Download + Transkription | ✅ Fertig |
-| **2** | Inhaltsanalyse + Skript-Generierung (Claude) | 🔜 Geplant |
-| **3** | Video-Rendering (Remotion / Seedance 2) | 🔜 Geplant |
+| **2** | Inhaltsanalyse + Skript-Generierung (Claude) | ✅ Fertig |
+| **3** | Video-Rendering (Remotion) | ✅ Fertig |
 
-## Setup
+## Schnellstart
 
 ```bash
 bun install
+
+# Vollständige Pipeline
+OPENAI_API_KEY=sk-...    bun src/index.ts https://youtube.com/watch?v=VIDEO_ID
+ANTHROPIC_API_KEY=sk-... bun src/generate-script.ts ./output/*_transcript.json --product "Seedance 2"
+                         bun src/render.ts ./output/*_script.json
 ```
 
-Voraussetzungen (automatisch geprüft):
-- `yt-dlp` (`pip install yt-dlp`)
-- `ffmpeg` (für Audio-Extraktion)
-- `OPENAI_API_KEY` (für Whisper-Transkription)
+## Voraussetzungen
+
+| Tool | Installation |
+|------|-------------|
+| `yt-dlp` | `pip install yt-dlp` |
+| `ffmpeg` | `apt install ffmpeg` / `brew install ffmpeg` |
+| `OPENAI_API_KEY` | Whisper-Transkription |
+| `ANTHROPIC_API_KEY` | Claude-Skript-Generierung |
+
+---
 
 ## Schritt 1: Download + Transkription
 
 ```bash
-# Vollständige Pipeline (Download + Transkription)
 OPENAI_API_KEY=sk-... bun src/index.ts https://www.youtube.com/watch?v=VIDEO_ID
 
-# Nur Download (kein API-Key nötig)
-bun src/index.ts https://www.youtube.com/watch?v=VIDEO_ID --no-transcribe
+# Nur Audio (kein API-Key)
+bun src/index.ts https://... --no-transcribe
 
 # Eigenes Ausgabeverzeichnis
 OPENAI_API_KEY=sk-... bun src/index.ts https://... --out ./mein-projekt
 ```
 
-### Ausgabe-Dateien
-
-Im `--out` Verzeichnis (Standard: `./output`):
+**Ausgabe:**
 
 | Datei | Inhalt |
 |-------|--------|
-| `*.mp3` | Heruntergeladenes Audio |
-| `*_transcript.txt` | Volltext der Transkription |
-| `*_transcript_timestamps.txt` | Transkript mit `[MM:SS]` Zeitstempeln |
-| `*_transcript.json` | Strukturiertes JSON für Schritt 2 |
+| `*.mp3` | Audio |
+| `*_transcript.txt` | Volltext |
+| `*_transcript_timestamps.txt` | Mit `[MM:SS]` Zeitstempeln |
+| `*_transcript.json` | JSON → Eingabe für Schritt 2 |
 
-### Nur Transkription (ohne Download)
+---
 
-Wenn du bereits eine Audio-Datei hast:
+## Schritt 2: Skript-Generierung (Claude API)
 
 ```bash
-OPENAI_API_KEY=sk-... bun src/test-transcribe.ts ./meine-datei.mp3
+ANTHROPIC_API_KEY=sk-... bun src/generate-script.ts \
+  ./output/mein_video_transcript.json \
+  --product "Seedance 2"
 ```
+
+**Ausgabe:**
+
+| Datei | Inhalt |
+|-------|--------|
+| `*_script.json` | Strukturiertes Skript (→ Schritt 3) |
+| `*_script.md` | Lesbares Markdown zum Review |
+
+**Pro Szene enthält das Skript:**
+- `narration` — Sprechertext
+- `visualDescription` — Was zu sehen ist
+- `onScreenText` — Einblendungen / Captions
+- `bRollSuggestions` — B-Roll Ideen
+- `seedancePrompt` — Englischer Prompt für Seedance 2
+
+---
+
+## Schritt 3: Video-Rendering (Remotion)
+
+```bash
+# Video rendern (MP4)
+bun src/render.ts ./output/mein_video_script.json
+
+# Vorschau im Browser (Remotion Studio)
+bun src/render.ts ./output/mein_video_script.json --preview
+
+# Oder direkt Remotion Studio öffnen
+bun run studio
+```
+
+**Remotion-Komponenten:**
+
+| Komponente | Funktion |
+|-----------|---------|
+| `TitleScene` | Intro mit Gradient, Titel, Kernbotschaften |
+| `ContentScene` | Szenen mit Narration, On-Screen-Text, Progress-Bar |
+| `OutroScene` | Zusammenfassung mit Checkmarks |
+| `FadeIn`, `SlideUp` | Animations-Primitives |
+| `Caption` | Progressives Wort-für-Wort Text-Rendering |
+
+---
 
 ## Architektur
 
 ```
 YouTube-URL
     ↓
-yt-dlp              → Audio als MP3 herunterladen
+yt-dlp (Schritt 1)       → Audio als MP3
     ↓
-OpenAI Whisper API  → Transkript mit Timestamps
+OpenAI Whisper API        → *_transcript.json
     ↓
-JSON Output         → Eingabe für Schritt 2 (Claude-Skript-Generator)
+Claude claude-opus-4-7    → *_script.json
+(adaptive thinking,       → *_script.md
+ structured JSON output)
+    ↓
+Remotion (Schritt 3)      → Video.mp4
 ```
 
-## Hinweise
+## Projektstruktur
 
-- **Dateigröße:** OpenAI Whisper API erlaubt max. 25 MB pro Datei (~30 Min Audio)
-- **Sprache:** Whisper erkennt die Sprache automatisch
-- **JS-Runtime:** Bun wird automatisch als yt-dlp JS-Runtime eingebunden (nötig für neue YouTube-Formate)
+```
+youtube-video-generator/
+├── src/
+│   ├── index.ts              # Schritt 1 CLI
+│   ├── download.ts           # yt-dlp Wrapper
+│   ├── transcribe.ts         # OpenAI Whisper
+│   ├── generate-script.ts    # Schritt 2 CLI
+│   ├── analyze.ts            # Claude API Integration
+│   ├── render.ts             # Schritt 3 CLI
+│   └── test-transcribe.ts    # Standalone Transkription
+├── remotion/
+│   └── src/
+│       ├── Root.tsx           # Remotion Entry Point
+│       ├── VideoComposition.tsx
+│       ├── types.ts
+│       ├── scenes/
+│       │   ├── TitleScene.tsx
+│       │   ├── ContentScene.tsx
+│       │   └── OutroScene.tsx
+│       └── components/
+│           ├── FadeIn.tsx
+│           ├── SlideUp.tsx
+│           ├── Caption.tsx
+│           └── ProgressBar.tsx
+└── output/                   # Alle generierten Dateien
+```
